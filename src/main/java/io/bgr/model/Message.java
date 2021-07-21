@@ -13,8 +13,10 @@ public class Message implements Serializable {
     @GeneratedValue
     private Long id;
 
+    @Column(name = "sender_id")
     private UUID senderId;
 
+    @Column(name = "recipient_id")
     private UUID recipientId;
 
     @CreationTimestamp
@@ -37,6 +39,12 @@ public class Message implements Serializable {
     public Message(String message, Set<MessageAttachment> attachments) {
         this.message = message;
         this.attachments = attachments;
+    }
+
+    @PrePersist
+    protected void onCreate() {
+        senderId = UUID.randomUUID();
+        recipientId = UUID.randomUUID();
     }
 
     public Long getId() {

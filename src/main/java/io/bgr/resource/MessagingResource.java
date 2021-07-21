@@ -2,6 +2,7 @@ package io.bgr.resource;
 
 import io.bgr.model.Message;
 import io.bgr.repository.MessagingRepository;
+import io.bgr.service.MessagingService;
 
 import javax.inject.Inject;
 import javax.transaction.Transactional;
@@ -16,22 +17,14 @@ import static javax.ws.rs.core.Response.ok;
 public class MessagingResource {
 
     @Inject
-    private MessagingRepository messagingRepository;
+    private MessagingService messagingService;
 
     @GET
     @Path("/init")
     @Transactional
     public Response initData() {
-        getDummyData().forEach(msg -> messagingRepository.persist(msg));
+        messagingService.initDummyData();
         return ok("Init success!").build();
-    }
-
-    private List<Message> getDummyData() {
-        return List.of(
-                new Message("Hello"),
-                new Message("Quarkus"),
-                new Message("Spring Boot New - Hot deploy")
-        );
     }
 
 }
