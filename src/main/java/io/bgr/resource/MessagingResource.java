@@ -16,6 +16,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+import java.io.File;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -24,6 +25,7 @@ import java.util.Set;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static javax.ws.rs.core.Response.*;
+import static org.apache.commons.io.FilenameUtils.getName;
 
 @Path("/message")
 public class MessagingResource {
@@ -87,6 +89,17 @@ public class MessagingResource {
                 .getMessagesById(id, uriInfo)
                 .map(message -> ok(message).build())
                 .orElse(status(NOT_FOUND).build());
+    }
+
+    @GET
+    @Path("/attachment/{id}")
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    public Response downloadAttachment(@PathParam Long id) {
+        MessageAttachment attachment = messagingService.getAttachment(id);
+        String fileName = getName(attachment.getFileLocation());
+        ResponseBuilder response = ok(new File(attachment.getFileLocation()));
+        response.header("Content-Disposition", "attachment; filename=" + fileName);
+        return response.build();
     }
 
     @GET

@@ -3,6 +3,7 @@ package io.bgr.service;
 
 import io.bgr.model.Message;
 import io.bgr.model.MessageAttachment;
+import io.bgr.repository.AttachmentRepository;
 import io.bgr.repository.MessagingRepository;
 import io.bgr.resource.MessagingResource;
 import org.apache.commons.io.IOUtils;
@@ -33,6 +34,8 @@ public class MessagingService {
     @Inject
     private MessagingRepository messagingRepository;
 
+    @Inject
+    private AttachmentRepository attachmentRepository;
 
     public Set<String> saveAttachments(List<InputPart> files) throws IOException {
         Set<String> savedFilePaths = new HashSet<>();
@@ -68,6 +71,11 @@ public class MessagingService {
     @Transactional
     public List<Message> getAllMessagesAttachmentsIncluded() {
         return messagingRepository.getAllMessagesAttachmentsIncluded();
+    }
+
+    @Transactional
+    public MessageAttachment getAttachment(Long id) {
+        return attachmentRepository.findById(id);
     }
 
     @Transactional
