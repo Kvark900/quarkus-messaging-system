@@ -27,6 +27,11 @@ public class MessageAttachment implements Serializable {
     public MessageAttachment() {
     }
 
+    public MessageAttachment(String fileLocation, Message message) {
+        this.fileLocation = fileLocation;
+        this.message = message;
+    }
+
     public Long getId() {
         return id;
     }
