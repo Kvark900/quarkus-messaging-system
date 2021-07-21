@@ -10,6 +10,10 @@ import java.util.UUID;
 @ApplicationScoped
 public class MessagingRepository implements PanacheRepository<Message> {
 
+    public List<Message> getAllMessagesAttachmentsIncluded() {
+        return find("SELECT m from Message m join fetch m.attachments").list();
+    }
+
     public List<Message> getMessagesBySenderUUID(UUID uuid) {
         String query = "SELECT m from Message m join fetch m.attachments where m.senderId = ?1";
         return find(query, uuid).list();

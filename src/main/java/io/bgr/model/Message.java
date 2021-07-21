@@ -1,5 +1,7 @@
 package io.bgr.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import io.bgr.response.Link;
 import org.hibernate.annotations.CreationTimestamp;
 
 import javax.persistence.*;
@@ -24,10 +26,14 @@ public class Message implements Serializable {
     private Date time;
     private String message;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "message",
             cascade = CascadeType.ALL,
             orphanRemoval = true)
     private Set<MessageAttachment> attachments;
+
+    @Transient
+    List<Link> links = new ArrayList<>();
 
     public Message() {
     }
@@ -45,6 +51,11 @@ public class Message implements Serializable {
     protected void onCreate() {
         senderId = UUID.randomUUID();
         recipientId = UUID.randomUUID();
+    }
+
+    public void addLink(String url, String rel) {
+        Link link = new Link(url, rel);
+        links.add(link);
     }
 
     public Long getId() {
@@ -89,6 +100,14 @@ public class Message implements Serializable {
 
     public void setAttachments(Set<MessageAttachment> attachments) {
         this.attachments = attachments;
+    }
+
+    public List<Link> getLinks() {
+        return links;
+    }
+
+    public void setLinks(List<Link> links) {
+        this.links = links;
     }
 
 }

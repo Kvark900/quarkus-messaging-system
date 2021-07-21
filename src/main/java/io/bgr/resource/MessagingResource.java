@@ -34,12 +34,16 @@ public class MessagingResource {
     @Inject
     private MessagingService messagingService;
 
+
     @GET
-    @Path("/init")
+    @Path("/")
+    @Produces(MediaType.APPLICATION_JSON)
     @Transactional
-    public Response initData() {
-        messagingService.initDummyData();
-        return ok("Init success!").build();
+    public Response getAllMessages(@Context UriInfo uriInfo) {
+        List<Message> messages = messagingService.getMessagesHATEOAS(uriInfo);
+        return messages != null && !messages.isEmpty() ?
+                ok(messages).build() :
+                noContent().build();
     }
 
     @POST
@@ -83,5 +87,13 @@ public class MessagingResource {
                 .getMessagesById(id, uriInfo)
                 .map(message -> ok(message).build())
                 .orElse(status(NOT_FOUND).build());
+    }
+
+    @GET
+    @Path("/init")
+    @Transactional
+    public Response initData() {
+        messagingService.initDummyData();
+        return ok("Init success!").build();
     }
 }

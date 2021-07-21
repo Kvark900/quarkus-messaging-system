@@ -2,7 +2,9 @@ package io.bgr.service;
 
 
 import io.bgr.model.Message;
+import io.bgr.model.MessageAttachment;
 import io.bgr.repository.MessagingRepository;
+import io.bgr.resource.MessagingResource;
 import org.apache.commons.io.IOUtils;
 import org.jboss.logging.Logger;
 import org.jboss.resteasy.plugins.providers.multipart.InputPart;
@@ -19,6 +21,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static java.lang.System.getProperty;
 
@@ -44,12 +47,27 @@ public class MessagingService {
 
     @Transactional
     public Optional<Message> getMessagesById(Long id, UriInfo uriInfo) {
-        return messagingRepository.findByIdOptional(id);
+        Optional<Message> message = messagingRepository.findByIdOptional(id);
+        return getMessageHATEOAS(message, uriInfo);
     }
 
     @Transactional
     public List<Message> getMessagesBySenderUUID(String uuid, UriInfo uriInfo) {
-        return messagingRepository.getMessagesBySenderUUID(UUID.fromString(uuid));
+        return messagingRepository.getMessagesBySenderUUID(UUID.fromString(uuid))
+                .stream().map(message -> getMessageHATEOAS(Optional.of(message), uriInfo).get())
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public List<Message> getMessagesHATEOAS(UriInfo uriInfo) {
+        List<Message> msgs = getAllMessagesAttachmentsIncluded();
+        msgs.forEach(msg -> getMessageHATEOAS(Optional.of(msg), uriInfo));
+        return msgs;
+    }
+
+    @Transactional
+    public List<Message> getAllMessagesAttachmentsIncluded() {
+        return messagingRepository.getAllMessagesAttachmentsIncluded();
     }
 
     @Transactional
@@ -79,6 +97,35 @@ public class MessagingService {
     @Transactional
     public void initDummyData() {
         getDummyData().forEach(msg -> messagingRepository.persist(msg));
+    }
+
+    private Optional<Message> getMessageHATEOAS(Optional<Message> message, UriInfo uriInfo) {
+        if (message.isEmpty()) return message;
+        Message msg = message.get();
+        msg.addLink(getSelfLink(msg, uriInfo), "self");
+        addAttachmentLinks(uriInfo, msg);
+        return message;
+    }
+
+    private void addAttachmentLinks(UriInfo uriInfo, Message msg) {
+        msg.getAttachments().forEach(attachment -> msg.addLink(getAttachmentLink(attachment, uriInfo), "attachments"));
+    }
+
+    private String getAttachmentLink(MessageAttachment attachment, UriInfo uriInfo) {
+        return uriInfo.getBaseUriBuilder()
+                .path(MessagingResource.class)
+                .path("/attachment")
+                .path(String.valueOf(attachment.getId()))
+                .build()
+                .toString();
+    }
+
+    private String getSelfLink(Message msg, UriInfo uriInfo) {
+        return uriInfo.getBaseUriBuilder()
+                .path(MessagingResource.class)
+                .path(String.valueOf(msg.getId()))
+                .build()
+                .toString();
     }
 
     private List<Message> getDummyData() {
