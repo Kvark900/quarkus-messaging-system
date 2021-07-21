@@ -17,14 +17,11 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import java.io.File;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
+import static javax.ws.rs.core.Response.*;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
-import static javax.ws.rs.core.Response.*;
 import static org.apache.commons.io.FilenameUtils.getName;
 
 @Path("/message")
@@ -35,7 +32,6 @@ public class MessagingResource {
 
     @Inject
     private MessagingService messagingService;
-
 
     @GET
     @Path("/")
@@ -104,7 +100,6 @@ public class MessagingResource {
 
     @GET
     @Path("/init")
-    @Transactional
     public Response initData() {
         messagingService.initDummyData();
         return ok("Init success!").build();
